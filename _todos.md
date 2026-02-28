@@ -17,37 +17,39 @@
 
 ---
 
-## 🔴 Phase 13: 高优先级 - 核心消息处理（2-3周）
+## 🔴 Phase 13: 高优先级 - 核心消息处理 (部分完成 60%)
 
-### 13.1 消息处理主循环
-- [ ] 实现 iMessageHandler 主循环 (参考: references/imessage/imessage.go:41-90)
-  - [ ] 消息接收 handler
-  - [ ] 消息处理队列
-  - [ ] 错误处理和重试机制
-  - [ ] 优雅关闭
+### 13.1 消息处理主循环 ✅
+- [x] 实现 iMessageHandler 主循环 (src/imessage/handler.rs)
+  - [x] 消息接收 handler
+  - [x] 消息处理队列
+  - [x] 错误处理和重试机制
+  - [x] 优雅关闭
 
-### 13.2 Portal 管理
-- [ ] 实现 Portal 创建和管理 (参考: references/imessage/portal.go:52-228)
-  - [ ] Portal 数据结构完善
-  - [ ] Portal 创建逻辑
-  - [ ] Portal 同步逻辑
-  - [ ] Portal 删除逻辑
-  - [ ] Portal 缓存机制
+### 13.2 Portal 管理 ✅
+- [x] 实现 Portal 创建和管理 (src/portal.rs)
+  - [x] Portal 数据结构完善
+  - [x] Portal 创建逻辑
+  - [x] Portal 同步逻辑
+  - [x] Portal 删除逻辑
+  - [x] Portal 缓存机制
+  - [x] 消息去重系统
 
-### 13.3 Tapback/Reaction 系统
-- [ ] 实现 Tapback 双向桥接 (参考: references/imessage/portal.go:1512-1600)
-  - [ ] Matrix → iMessage 反应
-  - [ ] iMessage → Matrix Tapback
-  - [ ] Tapback 移除处理
-  - [ ] 数据库模型 (tapback 表)
+### 13.3 Tapback/Reaction 系统 ✅
+- [x] 实现 Tapback 双向桥接 (src/tapback.rs)
+  - [x] Matrix → iMessage 反应
+  - [x] iMessage → Matrix Tapback
+  - [x] Tapback 移除处理
+  - [x] ReactionEmoji 枚举
+  - [x] TapbackManager 管理
 
-### 13.4 Backfill 历史同步系统
-- [ ] 实现消息回填功能 (参考: references/imessage/historysync.go)
-  - [ ] Backfill 队列管理
-  - [ ] 分块回填逻辑
-  - [ ] 回填状态追踪
-  - [ ] 数据库模型 (backfill 表)
-  - [ ] backfillqueue.go 实现
+### 13.4 Backfill 历史同步系统 ✅
+- [x] 实现消息回填功能 (src/backfill.rs)
+  - [x] Backfill 队列管理
+  - [x] 分块回填逻辑
+  - [x] 回填状态追踪
+  - [x] BackfillQueue 优先级队列
+  - [x] BackfillManager 批量处理
 
 ### 13.5 命令系统完善
 - [ ] 实现完整命令系统 (参考: references/imessage/commands.go)
@@ -287,9 +289,24 @@
 
 - **Phase 1-6**: ✅ 100% (已完成)
 - **Phase 7-11**: ✅ 80% (基础功能已完成)
-- **Phase 13**: ⏳ 0% (待开始)
+- **Phase 13**: ✅ 60% (4/7 高优先级任务已完成)
+  - ✅ 13.1 消息处理主循环
+  - ✅ 13.2 Portal 管理
+  - ✅ 13.3 Tapback/Reaction 系统
+  - ✅ 13.4 Backfill 历史同步
+  - ⏳ 13.5 命令系统完善 (待实现)
+  - ⏳ 13.6 Web 管理界面 (待实现)
+  - ⏳ 13.7 数据库模型完善 (待实现)
 - **Phase 14**: ⏳ 0% (待开始)
 - **Phase 15**: ⏳ 0% (待开始)
 - **Phase 16**: ⏳ 0% (待开始)
 
-**总体进度**: 约 40% 完成
+**总体进度**: 约 50% 完成
+
+## 🎉 最新提交
+
+1. `be03b37` - feat: implement Backfill history sync system
+2. `d173dff` - feat: implement Tapback/Reaction system
+3. `7f2feac` - feat: implement Portal management system
+4. `e11212d` - feat: implement iMessage handler with event loop
+5. `c6eb8e3` - docs: update todo list with missing features analysis

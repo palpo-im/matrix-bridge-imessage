@@ -17,7 +17,7 @@
 
 ---
 
-## 🔴 Phase 13: 高优先级 - 核心消息处理 (部分完成 60%)
+## 🔴 Phase 13: 高优先级 - 核心消息处理 (部分完成 80%)
 
 ### 13.1 消息处理主循环 ✅
 - [x] 实现 iMessageHandler 主循环 (src/imessage/handler.rs)
@@ -51,20 +51,22 @@
   - [x] BackfillQueue 优先级队列
   - [x] BackfillManager 批量处理
 
-### 13.5 命令系统完善
-- [ ] 实现完整命令系统 (参考: references/imessage/commands.go)
-  - [ ] `pm <contact>` - 发起私信
-  - [ ] `search-contacts <query>` - 搜索联系人
-  - [ ] `refresh-contacts` - 刷新联系人列表
-  - [ ] `merge <chat-id>` - 合并聊天
-  - [ ] `unmerge <chat-id>` - 拆分聊天
+### 13.5 命令系统完善 ✅
+- [x] 实现完整命令系统 (src/commands.rs)
+  - [x] `pm <contact>` - 发起私信
+  - [x] `search-contacts <query>` - 搜索联系人
+  - [x] `refresh-contacts` - 刷新联系人列表
+  - [x] `merge <chat-id>` - 合并聊天
+  - [x] `unmerge <chat-id>` - 拆分聊天
+  - [x] CommandProcessor 处理器
 
-### 13.6 Web 管理界面完善
-- [ ] 实现 Web API (参考: matrix-bridge-discord/web/*.rs)
-  - [ ] `/health` - 健康检查
-  - [ ] `/status` - 状态查询
-  - [ ] `/metrics` - Prometheus 指标
-  - [ ] `/api/v1/provisioning` - 供应接口
+### 13.6 Web 管理界面完善 ✅
+- [x] 实现 Web API (src/web/)
+  - [x] `/health` - 健康检查
+  - [x] `/status` - 状态查询
+  - [x] `/metrics` - Prometheus 指标
+  - [x] `/_matrix/app/v1/provisioning` - 供应接口
+  - [x] `/admin/bridges` - 管理接口
 
 ### 13.7 数据库模型完善
 - [ ] 添加缺失的数据库表 (参考: references/imessage/database/*.go)
@@ -289,24 +291,27 @@
 
 - **Phase 1-6**: ✅ 100% (已完成)
 - **Phase 7-11**: ✅ 80% (基础功能已完成)
-- **Phase 13**: ✅ 60% (4/7 高优先级任务已完成)
+- **Phase 13**: ✅ 80% (6/7 高优先级任务已完成)
   - ✅ 13.1 消息处理主循环
   - ✅ 13.2 Portal 管理
   - ✅ 13.3 Tapback/Reaction 系统
   - ✅ 13.4 Backfill 历史同步
-  - ⏳ 13.5 命令系统完善 (待实现)
-  - ⏳ 13.6 Web 管理界面 (待实现)
+  - ✅ 13.5 命令系统完善
+  - ✅ 13.6 Web 管理界面
   - ⏳ 13.7 数据库模型完善 (待实现)
 - **Phase 14**: ⏳ 0% (待开始)
 - **Phase 15**: ⏳ 0% (待开始)
 - **Phase 16**: ⏳ 0% (待开始)
 
-**总体进度**: 约 50% 完成
+**总体进度**: 约 55% 完成
 
 ## 🎉 最新提交
 
-1. `be03b37` - feat: implement Backfill history sync system
-2. `d173dff` - feat: implement Tapback/Reaction system
-3. `7f2feac` - feat: implement Portal management system
-4. `e11212d` - feat: implement iMessage handler with event loop
-5. `c6eb8e3` - docs: update todo list with missing features analysis
+1. `a376f71` - feat: implement Web management interface
+2. `5989182` - feat: implement command system
+3. `9fd7d42` - docs: update progress tracking - Phase 13 60% complete
+4. `be03b37` - feat: implement Backfill history sync system
+5. `d173dff` - feat: implement Tapback/Reaction system
+6. `7f2feac` - feat: implement Portal management system
+7. `e11212d` - feat: implement iMessage handler with event loop
+8. `c6eb8e3` - docs: update todo list with missing features analysis

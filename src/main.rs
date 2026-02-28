@@ -9,6 +9,7 @@ use anyhow::Result;
 use tracing::{error, info};
 
 mod admin;
+mod backfill;
 mod bridge;
 mod cache;
 mod cli;

@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  matrix-bridge-imessage:
+    build: .
+    container_name: matrix-bridge-imessage
+    restart: unless-stopped
+    ports:
+      - "9006:9006"
+    volumes:
+      - ./config:/app/config:ro
+      - imessage-data:/app/data
+    environment:
+      - RUST_LOG=info
+    depends_on:
+      - db
+    networks:
+      - bridge-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: matrix-bridge-imessage-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=imessage
+      - POSTGRES_PASSWORD=imessage_secret
+      - POSTGRES_DB=matrix_imessage
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - bridge-network
+
+volumes:
+  imessage-data:
+  postgres-data:
+
+networks:
+  bridge-network:
+    driver: bridge

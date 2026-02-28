@@ -18,6 +18,7 @@ mod imessage;
 mod matrix;
 mod media;
 mod parsers;
+mod portal;
 mod utils;
 mod web;
 

@@ -1,3 +1,5 @@
+use diesel::{allow_tables_to_appear_in_same_query, table};
+
 table! {
     message_mappings (id) {
         id -> Integer,

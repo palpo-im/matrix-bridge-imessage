@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use tokio::sync::RwLock;
 use tracing::info;
 
 use crate::db::DatabaseManager;
@@ -18,14 +17,14 @@ pub mod user_sync;
 #[derive(Clone)]
 pub struct BridgeCore {
     matrix_client: Arc<MatrixAppservice>,
-    imessage_client: Arc<RwLock<IMessageClient>>,
+    imessage_client: Arc<IMessageClient>,
     db_manager: Arc<DatabaseManager>,
 }
 
 impl BridgeCore {
     pub fn new(
         matrix_client: Arc<MatrixAppservice>,
-        imessage_client: Arc<RwLock<IMessageClient>>,
+        imessage_client: Arc<IMessageClient>,
         db_manager: Arc<DatabaseManager>,
     ) -> Self {
         Self {
@@ -39,8 +38,7 @@ impl BridgeCore {
         info!("starting bridge core");
         
         // Start iMessage client
-        let client = self.imessage_client.read().await;
-        client.start().await?;
+        self.imessage_client.start().await?;
         
         info!("bridge core started successfully");
         
@@ -54,8 +52,8 @@ impl BridgeCore {
         &self.matrix_client
     }
 
-    pub async fn imessage_client(&self) -> tokio::sync::RwLockReadGuard<'_, IMessageClient> {
-        self.imessage_client.read().await
+    pub fn imessage_client(&self) -> &IMessageClient {
+        &self.imessage_client
     }
 
     pub fn db_manager(&self) -> &DatabaseManager {

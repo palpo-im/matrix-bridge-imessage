@@ -190,7 +190,6 @@ pub struct MetricsSnapshot {
 
 #[handler]
 pub async fn metrics_endpoint(res: &mut Response) {
-    let metrics = Metrics::new();
-    let snapshot = metrics.snapshot();
+    let snapshot = Metrics::snapshot();
     res.render(Json(snapshot));
 }

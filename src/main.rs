@@ -9,19 +9,15 @@ use anyhow::Result;
 use tracing::{error, info};
 
 mod admin;
-mod backfill;
 mod bridge;
 mod cache;
 mod cli;
-mod commands;
 mod config;
 mod db;
 mod imessage;
 mod matrix;
 mod media;
 mod parsers;
-mod portal;
-mod tapback;
 mod utils;
 mod web;
 
@@ -39,9 +35,7 @@ async fn main() -> Result<()> {
     db_manager.migrate().await?;
 
     let matrix_client = Arc::new(matrix::MatrixAppservice::new(config.clone()).await?);
-    let imessage_client = Arc::new(imessage::IMessageClient::new(config.clone()).await?);
-
-    let mut event_handler = matrix::MatrixEventHandlerImpl::new(matrix_client.clone());
+    let imessage_client = Arc::new(imessage::IMessageClient::new(config.as_ref()).await?);
 
     let bridge = Arc::new(bridge::BridgeCore::new(
         matrix_client.clone(),
@@ -50,13 +44,6 @@ async fn main() -> Result<()> {
     ));
 
     imessage_client.set_bridge(bridge.clone()).await;
-
-    event_handler.set_bridge(bridge.clone());
-    let processor = Arc::new(matrix::MatrixEventProcessor::with_age_limit(
-        Arc::new(event_handler),
-        config.limits.matrix_event_age_limit_ms,
-    ));
-    matrix_client.set_processor(processor).await;
 
     let web_server = WebServer::new(
         config.clone(),

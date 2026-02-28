@@ -1,94 +1,18 @@
 use std::sync::Arc;
 
 use anyhow::{Context, Result};
-use matrix_bot_sdk::appservice::{Appservice, AppserviceHandler};
+use matrix_bot_sdk::appservice::{Appservice, NoopAppserviceHandler};
 use matrix_bot_sdk::client::{MatrixAuth, MatrixClient};
 use matrix_bot_sdk::models::CreateRoom;
 use serde_json::{json, Value};
-use tokio::sync::RwLock;
-use tracing::{debug, error, info, warn};
+use tracing::info;
 use url::Url;
 
 use crate::config::Config;
 
-pub mod command_handler;
-pub mod event_handler;
-
-pub use self::command_handler::{
-    MatrixCommandHandler, MatrixCommandOutcome, MatrixCommandPermission,
-};
-pub use self::event_handler::{MatrixEventHandler, MatrixEventHandlerImpl, MatrixEventProcessor};
-
-mod urlencoding {
-    pub fn encode(s: &str) -> String {
-        url::form_urlencoded::byte_serialize(s.as_bytes()).collect()
-    }
-}
-
-pub struct BridgeAppserviceHandler {
-    processor: Option<Arc<MatrixEventProcessor>>,
-}
-
-#[async_trait::async_trait]
-impl AppserviceHandler for BridgeAppserviceHandler {
-    async fn on_transaction(&self, _txn_id: &str, body: &Value) -> Result<()> {
-        let Some(processor) = &self.processor else {
-            return Ok(());
-        };
-
-        if let Some(events) = body.get("events").and_then(|v| v.as_array()) {
-            for event in events {
-                let Some(room_id) = event.get("room_id").and_then(|v| v.as_str()) else {
-                    continue;
-                };
-                let Some(sender) = event.get("sender").and_then(|v| v.as_str()) else {
-                    continue;
-                };
-                let Some(event_type) = event.get("type").and_then(|v| v.as_str()) else {
-                    continue;
-                };
-
-                let matrix_event = MatrixEvent {
-                    event_id: event
-                        .get("event_id")
-                        .and_then(|v| v.as_str())
-                        .map(ToOwned::to_owned),
-                    event_type: event_type.to_owned(),
-                    room_id: room_id.to_owned(),
-                    sender: sender.to_owned(),
-                    state_key: event
-                        .get("state_key")
-                        .and_then(|v| v.as_str())
-                        .map(ToOwned::to_owned),
-                    content: event.get("content").cloned(),
-                    timestamp: event.get("origin_server_ts").map(|v| v.to_string()),
-                };
-
-                if let Err(e) = processor.process_event(matrix_event).await {
-                    error!("error processing event: {}", e);
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
-#[derive(Clone)]
 pub struct MatrixAppservice {
     config: Arc<Config>,
     pub appservice: Appservice,
-    handler: Arc<RwLock<BridgeAppserviceHandler>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct MatrixEvent {
-    pub event_id: Option<String>,
-    pub event_type: String,
-    pub room_id: String,
-    pub sender: String,
-    pub state_key: Option<String>,
-    pub content: Option<Value>,
-    pub timestamp: Option<String>,
 }
 
 fn build_matrix_message_content(
@@ -142,43 +66,31 @@ impl MatrixAppservice {
             config.bridge.domain
         );
 
+        let registration = config.registration();
         let homeserver_url = Url::parse(&config.bridge.homeserver_url)?;
-        let auth = MatrixAuth::new(&config.registration.appservice_token);
+        let auth = MatrixAuth::new(&registration.as_token);
         let client = MatrixClient::new(homeserver_url, auth);
 
-        let handler = Arc::new(RwLock::new(BridgeAppserviceHandler { processor: None }));
+        let appservice = Appservice::new(&registration.hs_token, &registration.as_token, client)
+            .with_appservice_id(&registration.id)
+            .with_homeserver_name(&config.bridge.domain)
+            .with_user_prefix("@_imessage_")
+            .with_handler(Arc::new(NoopAppserviceHandler));
 
-        struct HandlerWrapper(Arc<RwLock<BridgeAppserviceHandler>>);
-        #[async_trait::async_trait]
-        impl AppserviceHandler for HandlerWrapper {
-            async fn on_transaction(&self, txn_id: &str, body: &Value) -> Result<()> {
-                self.0.read().await.on_transaction(txn_id, body).await
-            }
-        }
-
-        let registration = config.registration.clone();
-        let appservice = Appservice::with_handler(
-            client,
-            &registration.id,
-            &registration.as_token,
-            HandlerWrapper(handler.clone()),
-        )
-        .await?;
-
-        Ok(Self {
-            config,
-            appservice,
-            handler,
-        })
+        Ok(Self { config, appservice })
     }
 
     pub fn config(&self) -> &Config {
         &self.config
     }
 
-    pub async fn set_processor(&self, processor: Arc<MatrixEventProcessor>) {
-        let mut handler = self.handler.write().await;
-        handler.processor = Some(processor);
+    pub fn registration_preview(&self) -> Value {
+        let registration = self.config.registration();
+        json!({
+            "id": registration.id,
+            "url": registration.url,
+            "sender_localpart": registration.sender_localpart,
+        })
     }
 
     pub async fn send_message(
@@ -190,14 +102,12 @@ impl MatrixAppservice {
         edit_of: Option<&str>,
     ) -> Result<String> {
         let content = build_matrix_message_content(body, reply_to, edit_of);
-        
-        let event_id = self.appservice
-            .client()
-            .send_message(room_id, user_id, content)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        intent
+            .send_event(room_id, "m.room.message", &content)
             .await
-            .context("failed to send message")?;
-        
-        Ok(event_id)
+            .context("failed to send message")
     }
 
     pub async fn send_reaction(
@@ -215,13 +125,12 @@ impl MatrixAppservice {
             }
         });
 
-        let reaction_event_id = self.appservice
-            .client()
-            .send_state_event(room_id, user_id, "m.reaction", None, content)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        intent
+            .send_event(room_id, "m.reaction", &content)
             .await
-            .context("failed to send reaction")?;
-
-        Ok(reaction_event_id)
+            .context("failed to send reaction")
     }
 
     pub async fn redact_event(
@@ -231,12 +140,12 @@ impl MatrixAppservice {
         event_id: &str,
         reason: Option<&str>,
     ) -> Result<()> {
-        self.appservice
-            .client()
-            .redact(room_id, user_id, event_id, reason)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered().await?;
+        intent
+            .redact_event(room_id, event_id, reason)
             .await
             .context("failed to redact event")?;
-
         Ok(())
     }
 
@@ -246,12 +155,13 @@ impl MatrixAppservice {
         user_id: &str,
         event_id: &str,
     ) -> Result<()> {
-        self.appservice
-            .client()
-            .send_read_receipt(room_id, user_id, event_id)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        intent
+            .underlying_client()
+            .send_read_receipt(room_id, event_id)
             .await
             .context("failed to send read receipt")?;
-
         Ok(())
     }
 
@@ -262,12 +172,13 @@ impl MatrixAppservice {
         typing: bool,
         timeout: Option<u32>,
     ) -> Result<()> {
-        self.appservice
-            .client()
-            .send_typing(room_id, user_id, typing, timeout)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        intent
+            .underlying_client()
+            .set_typing(room_id, user_id, typing, timeout.map(u64::from))
             .await
             .context("failed to send typing notification")?;
-
         Ok(())
     }
 
@@ -280,49 +191,37 @@ impl MatrixAppservice {
         invite: Vec<&str>,
     ) -> Result<String> {
         let mut create_room = CreateRoom::default();
-        
-        if let Some(name) = name {
-            create_room.name = Some(name.to_string());
-        }
-        
-        if let Some(topic) = topic {
-            create_room.topic = Some(topic.to_string());
-        }
-        
-        if let Some(alias) = alias {
-            create_room.room_alias_name = Some(alias.to_string());
-        }
-        
+        create_room.name = name.map(ToOwned::to_owned);
+        create_room.topic = topic.map(ToOwned::to_owned);
+        create_room.room_alias_name = alias.map(ToOwned::to_owned);
         if !invite.is_empty() {
-            create_room.invite = invite.iter().map(|s| s.to_string()).collect();
+            create_room.invite = invite.into_iter().map(ToOwned::to_owned).collect();
         }
 
-        let room_id = self.appservice
-            .client()
-            .create_room(user_id, create_room)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered().await?;
+        intent
+            .underlying_client()
+            .create_room(&create_room)
             .await
-            .context("failed to create room")?;
-
-        Ok(room_id)
+            .context("failed to create room")
     }
 
     pub async fn join_room(&self, room_id: &str, user_id: &str) -> Result<()> {
-        self.appservice
-            .client()
-            .join_room(room_id, user_id)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent
+            .join_room(room_id)
             .await
             .context("failed to join room")?;
-
         Ok(())
     }
 
     pub async fn leave_room(&self, room_id: &str, user_id: &str) -> Result<()> {
-        self.appservice
-            .client()
-            .leave_room(room_id, user_id)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent
+            .leave_room(room_id, None)
             .await
             .context("failed to leave room")?;
-
         Ok(())
     }
 
@@ -332,12 +231,11 @@ impl MatrixAppservice {
         inviter: &str,
         invitee: &str,
     ) -> Result<()> {
-        self.appservice
-            .client()
-            .invite_user(room_id, inviter, invitee)
+        let intent = self.appservice.get_intent_for_user_id(inviter);
+        intent
+            .invite_user(invitee, room_id)
             .await
             .context("failed to invite user")?;
-
         Ok(())
     }
 
@@ -348,12 +246,11 @@ impl MatrixAppservice {
         kickee: &str,
         reason: Option<&str>,
     ) -> Result<()> {
-        self.appservice
-            .client()
-            .kick_user(room_id, kicker, kickee, reason)
+        let intent = self.appservice.get_intent_for_user_id(kicker);
+        intent
+            .kick_user(kickee, room_id, reason)
             .await
             .context("failed to kick user")?;
-
         Ok(())
     }
 
@@ -363,16 +260,13 @@ impl MatrixAppservice {
         user_id: &str,
         name: &str,
     ) -> Result<()> {
-        let content = json!({
-            "name": name
-        });
-
-        self.appservice
-            .client()
-            .send_state_event(room_id, user_id, "m.room.name", None, content)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        let content = json!({ "name": name });
+        intent
+            .send_state_event(room_id, "m.room.name", "", &content)
             .await
             .context("failed to set room name")?;
-
         Ok(())
     }
 
@@ -382,52 +276,23 @@ impl MatrixAppservice {
         user_id: &str,
         avatar_url: &str,
     ) -> Result<()> {
-        let content = json!({
-            "url": avatar_url
-        });
-
-        self.appservice
-            .client()
-            .send_state_event(room_id, user_id, "m.room.avatar", None, content)
+        let intent = self.appservice.get_intent_for_user_id(user_id);
+        intent.ensure_registered_and_joined(room_id).await?;
+        let content = json!({ "url": avatar_url });
+        intent
+            .send_state_event(room_id, "m.room.avatar", "", &content)
             .await
             .context("failed to set room avatar")?;
-
         Ok(())
     }
 
-    pub async fn set_user_avatar(
-        &self,
-        user_id: &str,
-        avatar_url: &str,
-    ) -> Result<()> {
-        let content = json!({
-            "avatar_url": avatar_url
-        });
-
-        self.appservice
-            .client()
-            .send_state_event("", user_id, "m.room.member", Some(user_id), content)
-            .await
-            .context("failed to set user avatar")?;
-
+    pub async fn set_user_avatar(&self, _user_id: &str, _avatar_url: &str) -> Result<()> {
+        // matrix-bot-sdk currently exposes profile mutation for the authenticated user only.
         Ok(())
     }
 
-    pub async fn set_user_displayname(
-        &self,
-        user_id: &str,
-        displayname: &str,
-    ) -> Result<()> {
-        let content = json!({
-            "displayname": displayname
-        });
-
-        self.appservice
-            .client()
-            .send_state_event("", user_id, "m.room.member", Some(user_id), content)
-            .await
-            .context("failed to set user displayname")?;
-
+    pub async fn set_user_displayname(&self, _user_id: &str, _displayname: &str) -> Result<()> {
+        // matrix-bot-sdk currently exposes profile mutation for the authenticated user only.
         Ok(())
     }
 

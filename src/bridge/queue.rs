@@ -16,7 +16,7 @@ impl<T: Send + 'static> ChannelQueue<T> {
         }
     }
 
-    pub fn send(&self, item: T) -> Result<(), T> {
+    pub fn send(&self, item: T) -> Result<(), tokio::sync::mpsc::error::SendError<T>> {
         self.sender.send(item)
     }
 

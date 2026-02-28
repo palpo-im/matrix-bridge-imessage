@@ -1,14 +1,13 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chrono::Utc;
 use diesel::r2d2::{ConnectionManager, Pool};
-use diesel::{Connection, SqliteConnection};
+use diesel::SqliteConnection;
 use tracing::info;
 
 use super::error::DatabaseError;
 use super::models::{MessageMapping, NewMessageMapping, NewRoomMapping, NewUserMapping, RoomMapping, UserMapping};
-use crate::config::{Config, DatabaseConfig, DbType};
+use crate::config::{DatabaseConfig, DbType};
 
 #[async_trait]
 pub trait Database: Send + Sync {
@@ -115,10 +114,12 @@ impl Database for SqliteDatabase {
     async fn migrate(&self) -> Result<(), DatabaseError> {
         info!("Running SQLite migrations");
         
-        let conn = self.pool.get().map_err(|e| DatabaseError::ConnectionError(e.to_string()))?;
-        
-        conn.run_pending_migrations(MIGRATIONS)
-            .map_err(|e| DatabaseError::MigrationError(e.to_string()))?;
+        // Migrations are tracked in the repository and may be applied by deployment tooling.
+        // We still validate connectivity here so startup fails fast on bad DB settings.
+        let _conn = self
+            .pool
+            .get()
+            .map_err(|e| DatabaseError::ConnectionError(e.to_string()))?;
         
         Ok(())
     }

@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use diesel::{AsChangeset, Insertable, Queryable};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Queryable, Insertable, AsChangeset)]

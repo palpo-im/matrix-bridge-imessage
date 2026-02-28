@@ -125,8 +125,8 @@ pub struct TypingNotification {
 pub enum GroupActionType {
     AddUser = 0,
     RemoveUser = 1,
-    SetAvatar = 1,
-    RemoveAvatar = 2,
+    SetAvatar = 2,
+    RemoveAvatar = 3,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
@@ -263,7 +263,7 @@ pub struct ChatInfo {
     pub delete: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Identifier {
     pub local_id: String,
     pub service: String,

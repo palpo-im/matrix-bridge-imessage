@@ -118,7 +118,7 @@ pub enum DbType {
 
 impl DatabaseConfig {
     pub fn db_type(&self) -> Result<DbType, ConfigError> {
-        if let Some(filename) = &self.filename {
+        if self.filename.is_some() {
             return Ok(DbType::Sqlite);
         }
 

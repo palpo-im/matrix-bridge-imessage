@@ -10,8 +10,8 @@ use tracing::{debug, error, info, warn};
 
 use crate::config::PlatformConfig;
 
-use super::interface::{BackfillTask, IMessageAPI};
-use super::structs::{
+use super::super::interface::{BackfillTask, IMessageAPI};
+use super::super::structs::{
     Attachment, ChatIdentifier, ChatInfo, ConnectorCapabilities, Contact, CreateGroupResponse,
     Message, MessageMetadata, ReadReceipt, RichLink, SendMessageStatus, SendResponse, TapbackType,
     TypingNotification,
@@ -249,14 +249,26 @@ impl IMessageAPI for BlueBubblesClient {
         Ok(Vec::new())
     }
     
-    async fn search_contact_list(&self, _search_terms: &str) -> Result<Vec<Contact>> {
+    async fn search_contacts(&self, _search_terms: &str) -> Result<Vec<Contact>> {
         // TODO: Implement
         Ok(Vec::new())
     }
     
-    async fn refresh_contact_list(&self) -> Result<()> {
+    async fn refresh_contacts(&self) -> Result<()> {
         // TODO: Implement
         Ok(())
+    }
+
+    async fn start_chat(&self, _identifier: &str) -> Result<ChatInfo> {
+        Err(anyhow::anyhow!("Not implemented"))
+    }
+
+    async fn merge_chat(&self, _chat_id: &str) -> Result<()> {
+        Err(anyhow::anyhow!("Not implemented"))
+    }
+
+    async fn unmerge_chat(&self, _chat_id: &str) -> Result<()> {
+        Err(anyhow::anyhow!("Not implemented"))
     }
     
     async fn get_chat_info(&self, _chat_id: &str, _thread_id: Option<&str>) -> Result<Option<ChatInfo>> {

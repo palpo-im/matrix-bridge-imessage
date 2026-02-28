@@ -12,6 +12,7 @@ pub async fn health_check(res: &mut Response) {
 pub async fn get_status(res: &mut Response) {
     let state = web_state();
     let uptime_seconds = state.started_at.elapsed().as_secs();
+    let registration = state.matrix_client.registration_preview();
 
     let status = json!({
         "status": "running",
@@ -19,7 +20,7 @@ pub async fn get_status(res: &mut Response) {
         "uptime_seconds": uptime_seconds,
         "bridge": {
             "platform": "imessage",
-            "domain": state.matrix_client.registration_preview().get("url"),
+            "domain": registration.get("url").cloned().unwrap_or(serde_json::Value::Null),
         }
     });
 

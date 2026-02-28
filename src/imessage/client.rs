@@ -57,8 +57,8 @@ impl IMessageClient {
         }
     }
     
-    pub async fn set_bridge(&self, bridge: Arc<BridgeCore>) {
-        let mut client = self.api.write().await;
+    pub async fn set_bridge(&self, _bridge: Arc<BridgeCore>) {
+        let _client = self.api.write().await;
         // Store bridge reference if needed
     }
     
@@ -142,37 +142,37 @@ impl IMessageAPI for IMessageClient {
     fn message_chan(&self) -> tokio::sync::broadcast::Receiver<Message> {
         // This is a bit tricky with async, we need to handle this differently
         // For now, return a dummy channel
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn read_receipt_chan(&self) -> tokio::sync::broadcast::Receiver<ReadReceipt> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn typing_notification_chan(&self) -> tokio::sync::broadcast::Receiver<TypingNotification> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn chat_chan(&self) -> tokio::sync::broadcast::Receiver<ChatInfo> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn contact_chan(&self) -> tokio::sync::broadcast::Receiver<Contact> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn message_status_chan(&self) -> tokio::sync::broadcast::Receiver<SendMessageStatus> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
     fn backfill_task_chan(&self) -> tokio::sync::broadcast::Receiver<BackfillTask> {
-        let (tx, rx) = tokio::sync::broadcast::channel(1);
+        let (_tx, rx) = tokio::sync::broadcast::channel(1);
         rx
     }
     
@@ -186,14 +186,29 @@ impl IMessageAPI for IMessageClient {
         api.get_contact_list().await
     }
     
-    async fn search_contact_list(&self, search_terms: &str) -> Result<Vec<Contact>> {
+    async fn search_contacts(&self, search_terms: &str) -> Result<Vec<Contact>> {
         let api = self.api.read().await;
-        api.search_contact_list(search_terms).await
+        api.search_contacts(search_terms).await
     }
     
-    async fn refresh_contact_list(&self) -> Result<()> {
+    async fn refresh_contacts(&self) -> Result<()> {
         let api = self.api.read().await;
-        api.refresh_contact_list().await
+        api.refresh_contacts().await
+    }
+
+    async fn start_chat(&self, identifier: &str) -> Result<ChatInfo> {
+        let api = self.api.read().await;
+        api.start_chat(identifier).await
+    }
+
+    async fn merge_chat(&self, chat_id: &str) -> Result<()> {
+        let api = self.api.read().await;
+        api.merge_chat(chat_id).await
+    }
+
+    async fn unmerge_chat(&self, chat_id: &str) -> Result<()> {
+        let api = self.api.read().await;
+        api.unmerge_chat(chat_id).await
     }
     
     async fn get_chat_info(&self, chat_id: &str, thread_id: Option<&str>) -> Result<Option<ChatInfo>> {

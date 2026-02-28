@@ -43,23 +43,23 @@
 - [ ] 实现读回执 (待完善)
 - [ ] 实现输入状态通知 (待完善)
 
-## Phase 5: Matrix 集成
-- [ ] 实现 Matrix AppService 客户端 (matrix/appservice.rs)
-- [ ] 实现事件处理器 (matrix/event_handler.rs)
-- [ ] 实现命令处理器 (matrix/command_handler.rs)
-- [ ] 实现用户管理
-- [ ] 实现房间管理
-- [ ] 实现消息发送
-- [ ] 实现消息接收和处理
+## Phase 5: Matrix 集成 ✅
+- [x] 实现 Matrix AppService 客户端 (matrix/appservice.rs)
+- [x] 实现事件处理器 (matrix/event_handler.rs)
+- [x] 实现命令处理器 (matrix/command_handler.rs)
+- [x] 实现用户管理
+- [x] 实现房间管理
+- [x] 实现消息发送
+- [x] 实现消息接收和处理
 
-## Phase 6: Bridge 核心逻辑
-- [ ] 实现 BridgeCore 核心结构 (bridge/core.rs)
-- [ ] 实现消息流转逻辑 (bridge/message_flow.rs)
-- [ ] 实现用户同步 (bridge/user_sync.rs)
-- [ ] 实现消息桥接逻辑 (bridge/logic.rs)
-- [ ] 实现消息队列 (bridge/queue.rs)
-- [ ] 实现状态管理 (bridge/presence_handler.rs)
-- [ ] 实现配置供应 (bridge/provisioning.rs)
+## Phase 6: Bridge 核心逻辑 ✅
+- [x] 实现 BridgeCore 核心结构 (bridge/core.rs)
+- [x] 实现消息流转逻辑 (bridge/message_flow.rs)
+- [x] 实现用户同步 (bridge/user_sync.rs)
+- [x] 实现消息桥接逻辑 (bridge/logic.rs)
+- [x] 实现消息队列 (bridge/queue.rs)
+- [x] 实现状态管理 (bridge/presence_handler.rs)
+- [x] 实现配置供应 (bridge/provisioning.rs)
 
 ## Phase 7: 消息类型支持
 ### Matrix → iMessage

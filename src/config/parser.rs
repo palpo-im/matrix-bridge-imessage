@@ -19,6 +19,28 @@ pub struct Config {
     pub metrics: MetricsConfig,
 }
 
+impl Config {
+    pub fn registration(&self) -> RegistrationConfig {
+        RegistrationConfig {
+            id: format!("imessage-{}", self.bridge.bridge_id),
+            url: format!("http://{}:{}", self.bridge.bind_address, self.bridge.port),
+            as_token: self.bridge.appservice_token.clone(),
+            hs_token: self.bridge.homeserver_token.clone(),
+            sender_localpart: format!("_imessage_{}", self.bridge.bridge_id),
+            rate_limited: false,
+            protocols: vec!["m.bridge.imessage".to_string()],
+            namespaces: NamespacesConfig {
+                users: vec![NamespaceConfig {
+                    exclusive: true,
+                    regex: format!("@_imessage_.*:{}", self.bridge.domain),
+                }],
+                aliases: vec![],
+                rooms: vec![],
+            },
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct BridgeConfig {
     pub domain: String,

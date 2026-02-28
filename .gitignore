@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+Cargo.lock
+*.db
+*.db-journal
+*.log
+.env
+config/config.yaml
+.DS_Store
+.idea/
+.vscode/
+*.iml

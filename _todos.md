@@ -25,23 +25,23 @@
 - [x] 支持 MySQL (基础结构)
 - [ ] 实现数据库迁移 (待完善)
 
-## Phase 4: iMessage API 客户端
-- [ ] 定义 iMessage API 接口 (imessage/interface.rs)
-- [ ] 定义数据结构 (imessage/structs.rs)
-  - [ ] Message 消息结构
-  - [ ] Contact 联系人结构
-  - [ ] ChatInfo 聊天信息结构
-  - [ ] Attachment 附件结构
-  - [ ] ReadReceipt 读回执
-  - [ ] TypingNotification 输入通知
-  - [ ] Tapback 反应类型
-- [ ] 实现 BlueBubbles 连接器 (imessage/bluebubbles/)
-- [ ] 实现 mac-nosip 连接器 (imessage/mac_nosip/)
-- [ ] 实现消息发送功能
-- [ ] 实现消息接收功能
-- [ ] 实现文件发送/接收
-- [ ] 实现读回执
-- [ ] 实现输入状态通知
+## Phase 4: iMessage API 客户端 ✅
+- [x] 定义 iMessage API 接口 (imessage/interface.rs)
+- [x] 定义数据结构 (imessage/structs.rs)
+  - [x] Message 消息结构
+  - [x] Contact 联系人结构
+  - [x] ChatInfo 聊天信息结构
+  - [x] Attachment 附件结构
+  - [x] ReadReceipt 读回执
+  - [x] TypingNotification 输入通知
+  - [x] Tapback 反应类型
+- [x] 实现 BlueBubbles 连接器 (imessage/bluebubbles/)
+- [x] 实现 mac-nosip 连接器 (imessage/mac_nosip/)
+- [ ] 实现消息发送功能 (待完善)
+- [ ] 实现消息接收功能 (待完善)
+- [ ] 实现文件发送/接收 (待完善)
+- [ ] 实现读回执 (待完善)
+- [ ] 实现输入状态通知 (待完善)
 
 ## Phase 5: Matrix 集成
 - [ ] 实现 Matrix AppService 客户端 (matrix/appservice.rs)

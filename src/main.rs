@@ -13,6 +13,7 @@ mod backfill;
 mod bridge;
 mod cache;
 mod cli;
+mod commands;
 mod config;
 mod db;
 mod imessage;

@@ -59,8 +59,12 @@ pub trait IMessageAPI: Send + Sync {
     
     async fn get_contact_info(&self, identifier: &str) -> Result<Option<Contact>, Box<dyn std::error::Error>>;
     async fn get_contact_list(&self) -> Result<Vec<Contact>, Box<dyn std::error::Error>>;
-    async fn search_contact_list(&self, search_terms: &str) -> Result<Vec<Contact>, Box<dyn std::error::Error>>;
-    async fn refresh_contact_list(&self) -> Result<(), Box<dyn std::error::Error>>;
+    async fn search_contacts(&self, search_terms: &str) -> Result<Vec<Contact>, Box<dyn std::error::Error>>;
+    async fn refresh_contacts(&self) -> Result<(), Box<dyn std::error::Error>>;
+    
+    async fn start_chat(&self, identifier: &str) -> Result<ChatInfo, Box<dyn std::error::Error>>;
+    async fn merge_chat(&self, chat_id: &str) -> Result<(), Box<dyn std::error::Error>>;
+    async fn unmerge_chat(&self, chat_id: &str) -> Result<(), Box<dyn std::error::Error>>;
     
     async fn get_chat_info(&self, chat_id: &str, thread_id: Option<&str>) -> Result<Option<ChatInfo>, Box<dyn std::error::Error>>;
     async fn get_group_avatar(&self, chat_id: &str) -> Result<Option<Attachment>, Box<dyn std::error::Error>>;

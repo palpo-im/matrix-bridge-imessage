@@ -19,6 +19,7 @@ mod matrix;
 mod media;
 mod parsers;
 mod portal;
+mod tapback;
 mod utils;
 mod web;
 

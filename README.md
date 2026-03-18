@@ -58,6 +58,30 @@ cp config/config.sample.yaml config/config.yaml
 
 ### Basic Configuration
 
+**KDL format** (`config.example.kdl`):
+
+```kdl
+bridge {
+    domain "your-homeserver.com"
+    homeserver_url "https://matrix.your-homeserver.com"
+    port 9006
+    appservice_token "YOUR_AS_TOKEN"
+    homeserver_token "YOUR_HS_TOKEN"
+}
+
+platform {
+    platform "bluebubbles"
+    bluebubbles_url "http://localhost:1234"
+    bluebubbles_password "YOUR_BLUEBUBBLES_PASSWORD"
+}
+
+database {
+    url "sqlite://./imessage.db"
+}
+```
+
+**YAML format** (`config.sample.yaml`):
+
 ```yaml
 bridge:
   domain: "your-homeserver.com"
@@ -87,6 +111,27 @@ database:
 #### mac-nosip
 
 Requires macOS with SIP disabled and Barcelona installed.
+
+### Palpo KDL Configuration
+
+When running as part of Palpo, add the bridge to your `palpo.kdl`:
+
+```kdl
+bridges {
+    imessage {
+        domain "your-homeserver.com"
+        homeserver_url "http://localhost:8008"
+        port 9006
+        appservice_token "YOUR_AS_TOKEN"
+        homeserver_token "YOUR_HS_TOKEN"
+        platform "bluebubbles"
+        bluebubbles_url "http://localhost:1234"
+        database_url "sqlite://./imessage.db"
+    }
+}
+```
+
+See `config/config.example.kdl` for the full configuration reference.
 
 ## Matrix Setup
 

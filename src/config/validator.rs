@@ -7,6 +7,7 @@ pub enum ConfigError {
     InvalidDatabaseUrl(String),
     InvalidPlatform(String),
     ParseError(String),
+    Kdl(String),
 }
 
 impl fmt::Display for ConfigError {
@@ -30,6 +31,9 @@ impl fmt::Display for ConfigError {
             }
             ConfigError::ParseError(msg) => {
                 write!(f, "Configuration parse error: {}", msg)
+            }
+            ConfigError::Kdl(msg) => {
+                write!(f, "KDL parsing error: {}", msg)
             }
         }
     }

@@ -1,0 +1,101 @@
+// Matrix iMessage Bridge Configuration (KDL format)
+// Use snake_case keys in this file.
+
+bridge {
+    domain "localhost"
+    homeserver_url "http://localhost:8008"
+    port 9006
+    bind_address "0.0.0.0"
+    bridge_id "imessage"
+    appservice_token "CHANGE_ME_AS_TOKEN"
+    homeserver_token "CHANGE_ME_HS_TOKEN"
+    presence_interval 500
+    disable_presence false
+    disable_typing_notifications false
+    disable_deletion_forwarding false
+    disable_portal_bridging false
+    enable_self_service_bridging false
+    disable_read_receipts false
+    disable_join_leave_notifications false
+    disable_invite_notifications false
+    disable_room_topic_notifications false
+    admin_mxid "@admin:localhost"
+    user_limit null
+    user_activity {
+        min_user_active_days 0
+        inactive_after_days 0
+    }
+}
+
+platform {
+    // Supported platforms: mac, mac-nosip, bluebubbles
+    platform "bluebubbles"
+
+    // BlueBubbles configuration
+    bluebubbles_url "http://localhost:1234"
+    bluebubbles_password "CHANGE_ME_BLUEBUBBLES_PASSWORD"
+
+    // mac-nosip configuration
+    imessage_rest_path ""
+    imessage_rest_args {
+    }
+    contacts_mode "mac"
+    hacky_set_locale ""
+    environment {
+    }
+    log_ipc_payloads false
+    unix_socket ""
+    ping_interval 60
+    delete_media_after_upload false
+}
+
+auth {
+    shared_secret "CHANGE_ME_SHARED_SECRET"
+}
+
+logging {
+    level "info"
+    line_date_format "MMM-D HH:mm:ss.SSS"
+    format "pretty"
+    files {
+    }
+}
+
+database {
+    // Choose one:
+    // filename "imessage.db"
+    // url "postgresql://user:password@localhost/matrix_imessage"
+    // url "mysql://user:password@localhost:3306/matrix_imessage"
+    url "sqlite://./imessage.db"
+    max_connections 10
+    min_connections 1
+}
+
+room {
+    default_visibility "public"
+    room_alias_prefix "_imessage_"
+    enable_room_creation true
+    kick_for 30000
+}
+
+limits {
+    room_ghost_join_delay 6000
+    imessage_send_delay 1500
+    room_count -1
+    matrix_event_age_limit_ms 900000
+    max_message_age_ms 900000
+}
+
+ghosts {
+    nick_pattern ":nick"
+    username_pattern ":username"
+    username_template "_imessage_{user_id}"
+    displayname_template "{displayname}"
+    avatar_url_template null
+}
+
+metrics {
+    enabled false
+    port 9002
+    bind_address "127.0.0.1"
+}

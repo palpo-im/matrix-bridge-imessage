@@ -3,6 +3,7 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use config::{Config as ConfigLib, File, FileFormat};
 use serde::Deserialize;
+use std::fs;
 
 use super::validator::ConfigError;
 
@@ -205,11 +206,27 @@ pub struct NamespaceConfig {
 impl Config {
     pub fn load() -> Result<Self> {
         let args = crate::cli::parse_args();
+        let path = Path::new(&args.config);
+        if !path.exists() {
+            let kdl_path = Path::new("config.kdl");
+            if kdl_path.exists() {
+                return Self::load_from_path(kdl_path);
+            }
+        }
         Self::load_from_path(&args.config)
     }
 
     pub fn load_from_path<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
+
+        if super::kdl_support::is_kdl_file(path) {
+            let content = fs::read_to_string(path)
+                .with_context(|| format!("Failed to read config from {:?}", path))?;
+            let config: Config = super::kdl_support::parse_kdl_config(&content)
+                .map_err(ConfigError::Kdl)?;
+            config.validate()?;
+            return Ok(config);
+        }
 
         let config = ConfigLib::builder()
             .add_source(File::from(path).format(FileFormat::Yaml))
